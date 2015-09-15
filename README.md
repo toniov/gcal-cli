@@ -15,7 +15,7 @@ Still in a early stage, issues or PRs with desired functionality or fixes are ap
 Just clone it in your machine or install it globaly using npm.
 
 ``` sh
-$ npm install cli-gcal -g
+$ npm install gcal-cli -g
 ```
 
 ### Usage
