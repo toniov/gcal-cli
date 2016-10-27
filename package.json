@@ -1,14 +1,14 @@
 {
   "name": "gcal-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Google Calendar client for node.js",
-  "main": "gcal-cli.js",
+  "main": "index.js",
   "dependencies": {
     "googleapis": "^2.1.3"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "make test"
+    "test": ""
   },
   "keywords": [
     "gcal",
@@ -17,5 +17,6 @@
     "cli"
   ],
   "author": "Antonio Valverde",
+  "repository": "antonvs2/gcal-cli",
   "license": "ISC"
 }

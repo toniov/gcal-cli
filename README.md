@@ -6,16 +6,18 @@ Still in a early stage, issues or PRs with desired functionality or fixes are ap
 
 ### Authorizing
 
-* Before running the app for the first time: You may need CLIENT_ID, CLIENT_SECRET and REDIRECT_URL. This information can be found going to the [Developer Console][dev-console], clicking your project --> APIs & auth --> credentials. Download the JSON file from the Developer Console to your working directory and rename it client_secret.json.
+* Before running the app for the first time: You may need your client Id, client secret and redirect URI. This information can be found going to the [Developer Console][dev-console], clicking your project --> APIs & auth --> credentials. Download the JSON file from the Developer Console to the root directory of this project and rename it client_secret.json.
 
 * Running the app for the first time: It will prompt you to authorize access, follow the instructions.
 
 ### Installation
 
-Just clone it in your machine or install it globaly using npm.
+Just clone it in your machine and execute index.js.
 
-``` sh
-$ npm install gcal-cli -g
+```sh
+$ git clone https://github.com/antonvs2/gcal-cli.git
+$ cd gcal-cli
+$ node index.js
 ```
 
 ### Usage
