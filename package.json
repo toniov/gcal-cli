@@ -1,10 +1,12 @@
 {
   "name": "gcal-cli",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Google Calendar client for node.js",
   "main": "index.js",
   "dependencies": {
-    "googleapis": "14.1.0"
+    "googleapis": "14.1.0",
+    "moment": "2.16.0",
+    "vorpal": "1.11.4"
   },
   "devDependencies": {},
   "scripts": {
@@ -14,9 +16,13 @@
     "gcal",
     "google",
     "calendar",
-    "cli"
+    "cli",
+    "vorpal"
   ],
   "author": "Antonio Valverde",
   "repository": "antonvs2/gcal-cli",
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "license": "ISC"
 }

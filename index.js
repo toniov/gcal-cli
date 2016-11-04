@@ -3,272 +3,214 @@
 // requires
 const fs = require('fs');
 const google = require('googleapis');
+const moment = require('moment');
+const Vorpal = require('vorpal');
+const chalk = Vorpal().chalk;
 const conf = require('./conf');
-const readline = require('readline');
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+const terms = require('./terms');
 let calendar;
 
-// Authorize app and call cli
-let content;
-try {
-  content = fs.readFileSync('client_secret.json');
-} catch (err) {
-  if (err.code === 'ENOENT') {
-    console.log('Some information about your Google Account is needed to be able to do the authorization.');
-    console.log('This information can be found in the Developer Console, clicking your project --> APIs & auth --> credentials.');
-    console.log('Download the JSON file from the Developer Console to the root directory of this repo and rename it client_secret.json.');
-    process.exit(0);
-  }
-  console.log('Error while trying to retrieve client secret');
-  throw err;
-}
+const cli = Vorpal();
 
-const credentials = JSON.parse(content).installed;
-const clientId = credentials.client_id;
-const clientSecret = credentials.client_secret;
-const redirectUrl = credentials.redirect_uris[0];
-
-const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUrl);
-
-let tokens;
-try {
-  tokens = fs.readFileSync(conf.TOKEN_PATH);
-  // a) token is already stored.
-  oauth2Client.setCredentials(JSON.parse(tokens));
-  oauth2Client.refreshAccessToken( err => {
-    if (err) {
-      console.log('Error while trying to refresh access token');
-      throw err;
-    }
-    calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-    cli();
-  });
-} catch (err) {
-  if (err.code === 'ENOENT') {
-    // b) no token stored
-    const authUrl = oauth2Client.generateAuthUrl({
-      access_type: 'offline',
-      scope: conf.SCOPES
-    });
-    // Url to a consent page.
-    console.log('Authorize this app by visiting this url: ', authUrl);
-
-    rl.question('Enter the code from that page here: ', code => {
-      // Retrieve access token.
-      oauth2Client.getToken(code, (err, tokens) => {
+// hidden command executed automatically after the app runs
+cli.command('setup', 'Initial setup: authenticate.')
+  .hidden()
+  .action(function (args, callback) {
+    let content = fs.readFileSync('client_secret.json');
+    const credentials = JSON.parse(content).installed;
+    const clientId = credentials.client_id;
+    const clientSecret = credentials.client_secret;
+    const redirectUrl = credentials.redirect_uris[0];
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUrl);
+    let tokens;
+    try {
+      // a) token is already stored
+      tokens = fs.readFileSync(conf.TOKEN_PATH);
+      oauth2Client.setCredentials(JSON.parse(tokens));
+      oauth2Client.refreshAccessToken(err => {
         if (err) {
-          console.log('Error while trying to retrieve access token from Google');
-          throw err;
+          this.log('Error while trying to refresh access token');
+          return callback(err);
         }
-
-        oauth2Client.setCredentials(tokens);
-        storeToken(tokens);
         calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-        cli();
+        callback();
       });
-    });
-  } else {
-    // c) unknown error.
-    console.log('Error while trying to retreieve token from your computer');
-    throw err;
-  }
-}
-
-/**
- * Command line interface.
- */
-const cli = () => {
-  rl.setPrompt('gcal> ');
-  rl.prompt();
-
-  rl.on('line', line => {
-    const args = line.trim().split(' ');
-    const commandName = args.splice(0, 1)[0]; // Return and delete command name, leaving the arguments(if any).
-    switch(commandName) {
-      case 'list':
-        let maxResults;
-        let date;
-        let showId;
-        for (let i = 0; i < args.length; i++) {
-          maxResults = args[i] === '-m' ? args[i+1] : maxResults;
-          date = args[i] === '-d' ? args[i+1] : date;
-          showId = args[i] === '-i' ? true : showId;
-        }
-        return listEvents(maxResults, date, showId);
-      case 'insert':
-        return insertEvent(args);
-      case 'delete':
-        return deleteEvent(args[0]);
-      case 'removeToken':
-        return removeToken();
-      case 'exit':
-        process.exit(0);
-        break;
-      case 'help':
-        console.log('list [-i] [-m <max results>] [-d <date>] (Date format: YYYYMM or YYYY or MM or M');
-        console.log('insert <YYYYMMDD> [<start time: hhmm>] [<duration in minutes>] (Default: current date, all-day-event)');
-        console.log('delete <event id>');
-        console.log('removeToken (Remove token stored in the file system');
-        rl.prompt();
-        break;
-      default:
-        console.log('Command not found. Type \'help\' to get a list of commands.');
-        rl.prompt();
-        break;
-    }
-  });
-}
-
-/**
- * Lists events.
- * @param {Number} maxResults Max amount of events.
- * @param {Number} date Date in format YYYYMM | YYYY | MM | M
- * @param {Boolean} showId Flag to indicate if event Id is displayed
- */
-const listEvents = (maxResults, date, showId) => {
-  // Default params (except maxResults).
-  const params = {
-    calendarId: conf.CALENDAR_ID,
-    timeMin: conf.eventList.TIME_MIN,
-    maxResults: maxResults || conf.eventList.MAX_RESULTS,
-    singleEvents: true,
-    orderBy: 'startTime'
-  };
-
-  // In case of a date is specified it's added to params
-  if (date) {
-    if (date.length === 6) {
-      // format YYYYYMM (Specified year and month)
-      const year = parseInt(date.substring(4, 6));
-      const month = parseInt(date.substring(0, 4));
-      params.timeMin = (new Date(year, month - 1)).toISOString();
-      params.timeMax = (new Date(year, month, 0)).toISOString();
-    } else if (date.length === 4) {
-      // format YYYY (The whole year)
-      params.timeMin = (new Date(date, 0, 1)).toISOString();
-      params.timeMax = (new Date(parseInt(date) + 1, 0, 0)).toISOString();
-    } else if (date.length === 2 || date.length === 1) {
-      // format MM or M (Current Year and specified month)
-      const currentYear = new Date().getFullYear();
-      params.timeMin = (new Date(currentYear, parseInt(date) - 1)).toISOString();
-      params.timeMax = (new Date(currentYear, date, 0)).toISOString();
-    }
-  }
-
-  calendar.events.list(params, (err, response) => {
-    if (err) {
-      console.log('The API returned an error: ' + err);
-      rl.resume();
-      rl.prompt();
-      return;
-    }
-
-    const events = response.items;
-    if (events.length === 0) {
-      console.log('No upcoming events found.');
-    } else {
-      console.log('Upcoming events:');
-      for (let i = 0; i < events.length; i++) {
-        const event = events[i];
-        const start = event.start.dateTime || event.start.date;
-        console.log('%s - %s', start, event.summary);
-        if (showId) {
-          console.log('###Event ID: %s', event.id);
-        }
+    } catch (err) {
+      // b) no token stored or unknown error
+      if (err.code !== 'ENOENT') {
+        this.log('Error while trying to retreieve token from your computer');
+        return callback(err);
       }
+      const authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: conf.SCOPES
+      });
+      this.log(`Authorize this app by visiting this url: ${authUrl}`);
+      this.prompt({
+        type: 'input',
+        name: 'code',
+        message: 'Enter the code from that page here: '
+      }, result => {
+        // Retrieve access token.
+        oauth2Client.getToken(result.code, (err, tokens) => {
+          if (err) {
+            this.log('Error while trying to retrieve access token from Google');
+            return callback(err);
+          }
+          oauth2Client.setCredentials(tokens);
+          calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+          storeToken(tokens);
+          callback();
+        });
+      });
     }
-    rl.prompt();
   });
-}
 
-/**
- * Insert event.
- * @param {String[]} args Arguments: YYYYMMDD [start time: hhmm] [duration in minutes]
- */
-const insertEvent = args => {
-  const event = {};
 
-  if (args.length === 0) {
-    // Default: current date, all-day-event)
-    const d = new Date();
-    const currentDate = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
-    event.start = {
-      date: currentDate
-    };
-    event.end = event.start;
-    console.log('Default date: ' + currentDate + ' (all-day-event).');
-  } else {
-    const year = args[0].substring(0, 4);
-    const month = args[0].substring(4, 6);
-    const day = args[0].substring(6, 8);
-
-    if (args.length === 3 || args.length === 2) {
-      const hours = args[1].substring(0, 2);
-      const minutes = args[1].substring(2, 4);
-      const duration = args[2] || conf.EVENT_DURATION;
-
-      event.start = {
-        dateTime: new Date(year, month - 1, day, hours, minutes)
-      };
-      event.end = {
-        dateTime: new Date(year, month - 1, day, hours, minutes + duration)
-      };
-    } else if (args.length === 1) {
-      event.start = {
-        date: year + '-' + month + '-' + day
-      };
-      event.end = {
-        date: year + '-' + month + '-' + day
-      };
-    }
-  }
-
-  rl.question('Insert event title:\n', code => {
-    event.summary = code;
-
+cli.command('list [term]', 'List events.\nIf term is specified the events for that period will be returned.\nFormat of term argument: YYYYMMDD (whole day), YYYYMM (whole month), YYYY (whole year)\nAlso natural language can be specified: like \'today\' or \'last month\'.')
+  .option('-i, --show-id', 'Show each event ID.')
+  .option('-m, --max <max results>', 'Maximum number of events returned. Up to 2500. Default: 250.')
+  .option('-f, --from <date>', 'Lower bound (inclusive) for an event\'s end time to filter by.\nFormat: YYYYMMDD or YYYYMMDD-hh:mm\n(ignored if \'term\' is specified')
+  .option('-t, --to <date>', 'Upper bound (exclusive) for an event\'s start time to filter by.\nFormat: YYYYMMDD or YYYYMMDD-hh:mm\n(ignored if \'term\' is specified')
+  .option('-o, --order <order>', `'The order of the events returned in the result. updated' or 'startTime'. Default: ${conf.LIST_ORDER}.`)
+  .types({
+    string: ['f', 'from', 't', 'to']
+  })
+  .action(function (args, callback) {
+    // set initial and default params
     const params = {
       calendarId: conf.CALENDAR_ID,
-      resource: event,
+      singleEvents: true,
+      orderBy: args.options['order'] || conf.LIST_ORDER
     };
 
-    calendar.events.insert(params, (err, response) => {
-      if (err) {
-        console.log('The API returned an error: ' + err);
-        rl.prompt();
-        return;
-      }
-      console.log('Event created: %s', response.htmlLink);
+    if (args.options['max']) {
+      params.maxResults = args.options['max'];
+    }
 
-      rl.prompt();
+    if (args.term) {
+      // convert to string in case of number
+      const term = typeof args.term === 'number' ? args.term.toString() : args.term;
+      if (isNaN(term)) {
+        if (!terms.fixedTerms[term]) {
+          this.log('Unsupported string, refer to the docs to check the available ones.');
+          return callback();
+        }
+        [params.timeMin, params.timeMax] = terms.fixedTerms[term]();
+      } else {
+        [params.timeMin, params.timeMax] = terms.calculateTerm(term);
+      }
+    } else {
+      const from = args.options['from'];
+      const to = args.options['to'];
+      if (from) {
+        params.timeMin = moment(from).format();
+      }
+      if (to) {
+        params.timeMax = moment(from).format();
+      }
+      if (!from && !to) {
+        [params.timeMin, params.timeMax] = terms.fixedTerms['today']();
+      }
+    }
+
+    calendar.events.list(params, (err, response) => {
+      if (err) {
+        this.log('The API returned an error: ' + err);
+        return callback();
+      }
+
+      const events = response.items;
+      if (events.length === 0) {
+        return callback('No upcoming events found.');
+      }
+      this.log('Upcoming events:');
+      events.forEach(event => {
+        let start;
+        if (event.start.dateTime) {
+          start = moment(event.start.dateTime).format(conf.START_DATETIME_FORMAT);
+        } else {
+          start = moment(event.start.date).format(conf.START_DATE_FORMAT);
+        }
+        if (args.options['show-id']) {
+          this.log(`${start} - ${chalk.bold(event.summary)} (${event.id})`);
+        } else {
+          this.log(`${start} - ${chalk.bold(event.summary)}`);
+        }
+      });
+      callback();
     });
   });
-}
 
-/**
- * Insert event.
- * @param {String} eventId Event ID.
- */
-const deleteEvent = eventId => {
-
-  const params = {
-    calendarId: conf.CALENDAR_ID,
-    eventId: eventId,
-  };
-
-  calendar.events.delete(params, err => {
-    if (err) {
-      console.log('The API returned an error: ' + err);
-      rl.prompt();
-      return;
+cli.command('insert <date> [start] [duration]', `Insert event.\nAn All-day-event of one day duration will be inserted if [start] is not specified.\nDefault duration for non All-day-event: ${conf.EVENT_DURATION}`)
+  .action(function (args, callback) {
+    const event = {};
+    const startDate = moment(args.date, 'YYYYMMDD').format('YYYY-MM-DD');
+    if (args.start) {
+      const startDateTime = moment(`${startDate} ${args.start}`).format();
+      event.start = { dateTime: startDateTime };
+      const duration = args.duration || conf.EVENT_DURATION;
+      event.end = { dateTime: moment(startDateTime).add(duration, 'minutes').format() };
+    } else {
+      event.start = { date: startDate };
+      event.end = { date: startDate };
     }
-    console.log('Event deleted.');
 
-    rl.prompt();
+    this.prompt({
+      type: 'input',
+      name: 'title',
+      message: 'Insert event title: ',
+    }, result => {
+      event.summary = result.title;
+      const params = {
+        calendarId: conf.CALENDAR_ID,
+        resource: event,
+      };
+      calendar.events.insert(params, (err, response) => {
+        if (err) {
+          this.log('The API returned an error: ' + err);
+          return callback();
+        }
+        this.log(`Event created: ${response.htmlLink}`);
+        callback();
+      });
+    });
   });
-}
+
+cli.command('remove-token', 'Remove token.')
+  .action(function (args, callback) {
+    fs.unlinkSync(conf.TOKEN_PATH);
+    this.log(`Token removed (${conf.TOKEN_PATH})`);
+    cli.exec('exit');
+  });
+
+cli.command('delete <id>', 'Delete event.')
+  .action(function (args, callback) {
+    const params = {
+      calendarId: conf.CALENDAR_ID,
+      eventId: args.id,
+    };
+
+    calendar.events.delete(params, err => {
+      if (err) {
+        this.log('The API returned an error: ' + err);
+        return callback();
+      }
+      console.log('Event deleted.');
+
+      callback();
+    });
+  });
+
+cli
+  .delimiter(chalk.magenta('gcal>'))
+  .exec('setup', function (err) {
+    if (err) {
+      this.log(err);
+      process.exit(1);
+    }
+    cli.show();
+  });
 
 /**
  * Store token to disk to be used in later program executions.
@@ -284,14 +226,5 @@ const storeToken = token => {
     }
   }
   fs.writeFile(conf.TOKEN_PATH, JSON.stringify(token));
-  console.log('Token stored to ' + conf.TOKEN_PATH);
-}
-
-/**
- * Remove previously stored token.
- */
-const removeToken = () => {
-  fs.unlinkSync(conf.TOKEN_PATH);
-  console.log('Token removed (' + conf.TOKEN_PATH + ')');
-  process.exit(0);
+  console.log(`Token stored to ${conf.TOKEN_PATH}`);
 }
