@@ -1,27 +1,26 @@
 'use strict';
 
 const path = require('path');
-const conf = {};
+const os = require('os');
 
-conf.SCOPES = ['https://www.googleapis.com/auth/calendar'];
+module.exports = {
+  SCOPES: ['https://www.googleapis.com/auth/calendar'],
 
-conf.TOKEN_DIR = path.join(process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE, '.credentials');
+  CRED_PATH: path.join(os.homedir(), 'client_secret.json'),
 
-conf.TOKEN_PATH = path.join(conf.TOKEN_DIR, 'calendar-api-quickstart.json');
+  TOKEN_PATH: path.join(os.homedir(), 'calendar_api_token.json'),
 
-// default order when listing events
-conf.LIST_ORDER = 'startTime';
+  CALENDAR_ID: 'primary',
 
-// default duration when inserting events
-conf.EVENT_DURATION = 60;
+  LIST_ORDER: 'startTime',
 
-// default date formats when listing events
-// not all day event
-conf.START_DATETIME_FORMAT = 'YYYY-MM-DD HH:mm';
-// all day event
-conf.START_DATE_FORMAT = 'YYYY-MM-DD -----';
+  // about format: momentjs.com/docs/#/displaying/format
+  LIST_FORMAT_DATETIME: 'YYYY-MM-DD HH:mm',
 
-// default calendar id
-conf.CALENDAR_ID = 'primary';
+  LIST_FORMAT_DATE: 'YYYY-MM-DD [(All)]',
 
-module.exports = conf;
+  // available properties developers.google.com/google-apps/calendar/v3/reference/events
+  BULK_RESULT: ['id', 'summary' , 'htmlLink'],
+
+  EVENT_DURATION: 60
+};
