@@ -87,7 +87,7 @@ const storeToken = async (code) => {
 };
 
 /**
- * List event
+ * List events
  * @param {string} [naturalInfo]
  * @param {Object} [options]
  * @param {string} options.from
@@ -147,7 +147,7 @@ const list = async (naturalInfo, options) => {
 };
 
 /**
- * List event
+ * Insert event
  * @param {string} [naturalInfo]
  * @param {Object} [options]
  * @param {string} options.summary
@@ -237,6 +237,7 @@ const bulk = async (eventsPath) => {
   await Promise.all(promises);
 };
 
+// main
 (async function () {
   const command = argv._[0];
   const configPath = argv.config || argv.C;
