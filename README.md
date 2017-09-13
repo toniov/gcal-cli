@@ -89,7 +89,9 @@ With the code we got through the authorization page, we can obtain a token and s
 $ gcal storeToken <code>
 ```
 
-([By default](#overwriting-default-config) the token is stored in your home folder under the name `calendar_api_token.json`. NOTE: The token will expiry after one hour, but a `refresh_token` is included as well, allowing the app to refresh automatically the token each time it's used)
+([By default](#overwriting-default-config) the token is stored in your home folder under the name `calendar_api_token.json`). 
+
+NOTE: The token will expiry after one hour, but a `refresh_token` is included as well, allowing the app to refresh automatically the token each time it's used.
 
 With this we are good to go. The stored token and credentials files will be required from now on to use this tool.
 
@@ -172,7 +174,7 @@ Bulk insert passing a `.js` or `.json` file:
 }]
 ```
 ```
-gcal bulk -e ./events.json
+$ gcal bulk -e ./events.json
 ```
 
 Using a `.js` file can be useful for relative dates and more:
@@ -207,7 +209,7 @@ module.exports = [{
 }];
 ```
 ```
-gcal bulk -e ./events.js
+$ gcal bulk -e ./events.js
 ```
 
 The available properties are listed [here](https://developers.google.com/google-apps/calendar/v3/reference/events/insert).
@@ -227,7 +229,7 @@ Example:
 ```
 
 ```
-gcal -C /somepath/config.json generateUrl
+$ gcal -C /somepath/config.json generateUrl
 ```
 
 Doing this you can store your credential files wherever you want.
