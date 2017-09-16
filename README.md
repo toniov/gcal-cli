@@ -66,7 +66,7 @@ You will need a file with your credentials: `client ID`, `client secret` and `re
 
 - Go to your project
 - Click in `Credentials`
-- Click `Create credentials` → `OAuth client ID`
+- Click `Create credentials` → `OAuth client ID` ( `Application type` must be `Other` )
 - Download the JSON file
 
 #### 2) Generate consent page URL
