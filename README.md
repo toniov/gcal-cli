@@ -77,7 +77,7 @@ Once we got the credentials we must generate a consent page URL.
 $ gcal generateUrl
 ```
 
-([By default](#overwriting-default-config) the credentials will be searched in your home directory under the name `client_secret.json`)
+([By default](#overwriting-default-config) the credentials will be searched in your home directory under the name `client_secret.json`).
 
 The page will prompt you to authorize access, follow the instructions.
 
@@ -105,7 +105,7 @@ List today events:
 $ gcal list
 ```
 
-List events using natural language (powered by [Sherlock](https://github.com/neilgupta/Sherlock):
+List events using natural language (powered by [Sherlock](https://github.com/neilgupta/Sherlock)):
 
 ```
 $ gcal list tomorrow
