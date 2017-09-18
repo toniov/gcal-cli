@@ -237,8 +237,6 @@ const bulk = async (eventsPath) => {
   await Promise.all(promises);
 };
 
-console.log(argv);
-
 // main
 (async function () {
   const command = argv._[0];
