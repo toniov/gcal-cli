@@ -11,6 +11,7 @@ const chalk = require('chalk');
 const moment = require('moment');
 const conf = require('./conf');
 const help = require('./help');
+const opn = require('opn');
 
 /**
  * Get absolute path
@@ -64,13 +65,16 @@ const getClient = async () => {
  * Generate consent page URL
  * @returns {Promise}
  */
-const generateUrl = async () => {
+const generateUrl = async (openInBrowser) => {
   const oauth2Client = getOauth2Client();
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: conf.SCOPES
   });
   console.log(authUrl);
+  if (openInBrowser) {
+    opn(authUrl, { wait: 0 });
+  }
 };
 
 /**
@@ -185,7 +189,7 @@ const insert = async (naturalInfo, options) => {
         date: moment(date).format('YYYY-MM-DD')
       };
       event.end = {
-        date: duration ? 
+        date: duration ?
           moment(date).add(duration.slice(0, -1), duration.slice(-1)).format('YYYY-MM-DD') :
           moment(date).add(1, 'd').format('YYYY-MM-DD')
       };
@@ -195,7 +199,7 @@ const insert = async (naturalInfo, options) => {
         dateTime: moment(dateTime).format()
       };
       event.end = {
-        dateTime: duration ? 
+        dateTime: duration ?
           moment(dateTime).add(duration.slice(0, -1), duration.slice(-1)).format() :
           moment(dateTime).add(conf.EVENT_DURATION, 'm').format()
       };
@@ -249,7 +253,7 @@ console.log(argv);
   }
   switch (command) {
     case 'generateUrl': {
-      await generateUrl();
+      await generateUrl(argv.o);
       break;
     }
     case 'storeToken': {

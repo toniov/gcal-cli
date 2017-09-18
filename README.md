@@ -56,7 +56,7 @@ npm install -g gcal
 
 ## Authentication
 
-Authorization and authentication is done with OAuth 2.0. 
+Authorization and authentication is done with OAuth 2.0.
 
 Ok, this will take only 2 minutes:
 
@@ -81,6 +81,8 @@ $ gcal generateUrl
 
 The page will prompt you to authorize access, follow the instructions.
 
+If you add the `-o` option to the command, your default browser will be opened automatically with the consent page.
+
 #### 3) Get the token!
 
 With the code we got through the authorization page, we can obtain a token and store it in our machine.
@@ -89,7 +91,7 @@ With the code we got through the authorization page, we can obtain a token and s
 $ gcal storeToken <code>
 ```
 
-([By default](#overwriting-default-config) the token is stored in your home folder under the name `calendar_api_token.json`). 
+([By default](#overwriting-default-config) the token is stored in your home folder under the name `calendar_api_token.json`).
 
 NOTE: The token will expiry after one hour, but a `refresh_token` is included as well, allowing the app to refresh automatically the token each time it's used.
 
