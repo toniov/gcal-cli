@@ -24,7 +24,7 @@ Programmatic event listing, insert or bulk insert made easy:
     "start": { "dateTime": "2017-09-08T22:00" },
     "end": { "dateTime": "2017-09-08T23:30" }}
   }]' \
-  > events.js
+  > events.json
 
   <b>$ gcal bulk -e events.json</b>
 
