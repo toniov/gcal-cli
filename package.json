@@ -2,8 +2,9 @@
   "name": "gcal",
   "version": "1.0.3",
   "description": "Google Calendar command line tool for Node.js",
-  "bin": "index.js",
+  "bin": "bin.js",
   "dependencies": {
+    "babel-eslint": "^9.0.0",
     "chalk": "^2.1.0",
     "googleapis": "^21.3.0",
     "minimist": "^1.2.0",
