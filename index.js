@@ -185,7 +185,7 @@ const insert = async (naturalInfo, options) => {
         date: moment(date).format('YYYY-MM-DD')
       };
       event.end = {
-        date: duration ? 
+        date: duration ?
           moment(date).add(duration.slice(0, -1), duration.slice(-1)).format('YYYY-MM-DD') :
           moment(date).add(1, 'd').format('YYYY-MM-DD')
       };
@@ -195,7 +195,7 @@ const insert = async (naturalInfo, options) => {
         dateTime: moment(dateTime).format()
       };
       event.end = {
-        dateTime: duration ? 
+        dateTime: duration ?
           moment(dateTime).add(duration.slice(0, -1), duration.slice(-1)).format() :
           moment(dateTime).add(conf.EVENT_DURATION, 'm').format()
       };
@@ -230,7 +230,7 @@ const bulk = async (eventsPath) => {
         }
       });
     } catch (err) {
-      console.error(`[ERROR] Error inserting event: ${event.summary || ''}`);
+      console.error(`[ERROR] Error inserting event: ${JSON.stringify(event) || ''}`);
       errHandler(err);
     }
   });
