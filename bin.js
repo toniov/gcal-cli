@@ -1,7 +1,8 @@
 const argv = require('minimist')(process.argv.slice(2));
-const conf = require('./conf');
-const help = require('./help');
-const {errHandler, generateUrl, insert, list, bulk, storeToken} = require('./index');
+const conf = require('./src/conf');
+const help = require('./src/help');
+const {generateUrl, insert, list, bulk, storeToken} = require('./src/core');
+const log = require('./src/log');
 const path = require('path');
 
 /**
@@ -70,4 +71,4 @@ const getPath = (rawPath) => {
       break;
     }
   }
-})().catch(err => errHandler(err, argv.debug));
+})().catch(err => log.error(err, argv.debug));
