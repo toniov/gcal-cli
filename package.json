@@ -4,11 +4,11 @@
   "description": "Google Calendar command line tool for Node.js",
   "bin": "bin.js",
   "dependencies": {
-    "babel-eslint": "^9.0.0",
     "chalk": "^2.1.0",
     "googleapis": "^21.3.0",
     "minimist": "^1.2.0",
     "moment": "^2.18.1",
+    "p-settle": "^2.1.0",
     "sherlockjs": "^1.3.7"
   },
   "devDependencies": {

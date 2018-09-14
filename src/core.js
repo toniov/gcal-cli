@@ -6,6 +6,7 @@ const chalk = require('chalk');
 const client = require('./client');
 const conf = require('./conf');
 const fs = require('fs');
+const log = require('./log');
 const moment = require('moment');
 const { promisify } = require('util');
 const Sherlock = require('sherlockjs');
@@ -168,5 +169,25 @@ module.exports.insert = async (naturalInfo, options) => {
  */
 module.exports.bulk = async (eventsPath) => {
   const events = require(eventsPath);
-  return await api.bulk(events);
+  const results =  await api.bulk(events);
+
+  results
+    .filter(result => result.isFulfilled)
+    .map(result => result.value)
+    .forEach(result => {
+      console.log('Event inserted');
+      conf.BULK_RESULT.forEach(property => {
+        if (result[property]) {
+          console.log(` ${property}: ${result[property]}`);
+        }
+      });
+    });
+
+  results
+    .filter(result => result.isRejected)
+    .map(result => result.reason)
+    .forEach(result => {
+      console.error('[ERROR] Error inserting event');
+      log.error(result.reason, true);
+    });
 };
