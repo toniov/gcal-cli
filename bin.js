@@ -1,7 +1,7 @@
 const argv = require('minimist')(process.argv.slice(2));
 const conf = require('./src/conf');
 const help = require('./src/help');
-const {generateUrl, insert, list, bulk, storeToken} = require('./src/core');
+const {bulk, enable, generateUrl, insert, list, storeToken} = require('./src/core');
 const log = require('./src/log');
 const path = require('path');
 
@@ -59,6 +59,10 @@ const getPath = (rawPath) => {
     case 'bulk': {
       const eventsPath = getPath(argv.events || argv.e);
       await bulk(eventsPath);
+      break;
+    }
+    case 'enable': {
+      await enable();
       break;
     }
     case 'help': {

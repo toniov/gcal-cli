@@ -37,6 +37,18 @@ module.exports.storeToken = async (code) => {
 };
 
 /**
+ * Display list of calendars... just to display the link to enable the api
+ */
+module.exports.enable = async () => {
+  const calendar = await client();
+  const {items} = await promisify(calendar.calendarList.list)();
+
+  items.forEach(item => {
+    console.log(item.summary);
+  });
+};
+
+/**
  * List events
  * @param {string} [naturalInfo]
  * @param {Object} [options]
