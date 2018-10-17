@@ -183,23 +183,5 @@ module.exports.bulk = async (eventsPath) => {
   const events = require(eventsPath);
   const results =  await api.bulk(events);
 
-  results
-    .filter(result => result.isFulfilled)
-    .map(result => result.value)
-    .forEach(result => {
-      console.log('Event inserted');
-      conf.BULK_RESULT.forEach(property => {
-        if (result[property]) {
-          console.log(` ${property}: ${result[property]}`);
-        }
-      });
-    });
-
-  results
-    .filter(result => result.isRejected)
-    .map(result => result.reason)
-    .forEach(result => {
-      console.error('[ERROR] Error inserting event');
-      log.error(result.reason, true);
-    });
+  log.results(results);
 };
