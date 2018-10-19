@@ -7,6 +7,7 @@ const conf = require('./conf');
  */
 const error = module.exports.error = (err, debug = false) => {
   if (debug) {
+    console.error(err);
     console.error(`[ERROR] ${err && err.code} ${err && err.stack}`);
   } else {
     console.error(`[ERROR] ${err.message}`);
