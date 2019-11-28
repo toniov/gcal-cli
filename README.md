@@ -62,7 +62,7 @@ Ok, this will take only 2 minutes:
 
 #### 1) Get your project credentials
 
-You will need a file with your credentials: `client ID`, `client secret` and `redirect URI`. This can be obtained in the [Developer Console](https://console.developer.google.com):
+You will need a file with your credentials: `client ID`, `client secret` and `redirect URI`. This can be obtained in the [Developer Console](https://console.developers.google.com):
 
 - Go to your project
 - Click in `Credentials`
