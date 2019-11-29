@@ -50,6 +50,8 @@ ${chalk.bold('Commands')}:
   ${chalk.bold('storeToken')} <code>
       Store Token in your home folder.
 
+  ${chalk.bold('enable')}
+      Display the list of available calendars. Else display the URL to enable api.
 
   ${chalk.bold('help')}
       Show this help page.
