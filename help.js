@@ -43,7 +43,7 @@ ${chalk.bold('Commands')}:
 
 
   ${chalk.bold('generateUrl')}
-      Generate consent page URL. In order to work client_secret.js must be in your
+      Generate consent page URL. In order to work client_secret.json must be in your
       home folder.
 
 
